@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-        with:
-          repo-token: ${{ secrets.PAT_FOR_WORKFLOWS }}
       - name: Run some commands
         run: echo "This is a subworkflow"
 
