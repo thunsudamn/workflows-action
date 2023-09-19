@@ -2,12 +2,9 @@ name: Checking workflow calling
 
 on:
   workflow_call:
-    secrets:
-      PAT_FOR_WORKFLOWS:
-        required: true
 
 jobs:
-  triage:
+  echo:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
