@@ -6,12 +6,9 @@ on:
 jobs:
   subworkflow_job:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-
       - name: Run some commands
-        run:
-          echo "This is a subworkflow"
+        run: echo "This is a subworkflow"
         
