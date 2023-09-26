@@ -27,7 +27,6 @@ jobs:
       - name: Check Pull Request Status
         run: |
           PR_NUMBER="${{ inputs.pr_number }}"
-          echo The Title of your PR is ${{ github.event.pull_request.title }}
           PR_DATA=$(curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
@@ -40,6 +39,13 @@ jobs:
           else
             echo "Pull Request is not merged."
           fi
+
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          echo "Pull Request URL: $PR_URL"
+
+          # Access the pull request number
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          echo "Pull Request Number: $PR_NUMBER"
         
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
