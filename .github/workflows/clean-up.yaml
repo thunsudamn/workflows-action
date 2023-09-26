@@ -44,11 +44,11 @@ jobs:
             echo "Pull Request is not merged."
           fi
 
-          PR_URL="${{ github.event.pull_request.html_url }}"
-          echo "Pull Request URL: $PR_URL"
+          # PR_URL="${{ github.event.pull_request.html_url }}"
+          # echo "Pull Request URL: $PR_URL"
 
           # Access the pull request number
-          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_NUMBER=$${{github.event.number}}
           echo "Pull Request Number: $PR_NUMBER"
         
         env:
