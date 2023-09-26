@@ -1,6 +1,6 @@
 name: Cleaning up namespace
 on: 
-    workflow_dispatch:
+    workflow_call:
 
 jobs:
   check_pull_request:
