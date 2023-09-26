@@ -1,6 +1,7 @@
 name: Cleaning up namespace
-on: 
-    workflow_call:
+
+on:
+  workflow_call:
 
 jobs:
   check-pr-status:
