@@ -1,7 +1,12 @@
 name: Cleaning up namespace
 
 on:
+  workflow_dispatch:
   workflow_call:
+    inputs:
+      pr_number:
+        description: 'Pull Request Number'
+        required: true
 
 jobs:
   check-pr-status:
@@ -13,6 +18,9 @@ jobs:
       - name: Check Pull Request Status
         id: check-pr-status
         run: |
+          # Fetch the pull request number provided as input
+          PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          
           # Make a GitHub API request to fetch the pull request details
           PR_DATA=$(curl -L \
             -H "Accept: application/vnd.github+json" \
