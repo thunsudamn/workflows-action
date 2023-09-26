@@ -7,16 +7,16 @@ on:
         required: true
         type: string
         description: 'Pull Request Number'
-      SourceCodeBranch:
-        required: true
-        type: string
-    secrets:
-        CLIENT_ID:
-          required: true
-        CLIENT_SECRET:
-          required: true
-        TENANT_ID:
-          required: true
+    #   SourceCodeBranch:
+    #     required: true
+    #     type: string
+    # secrets:
+    #     CLIENT_ID:
+    #       required: true
+    #     CLIENT_SECRET:
+    #       required: true
+    #     TENANT_ID:
+    #       required: true
 
 jobs:
   check-pr-status:
@@ -27,6 +27,7 @@ jobs:
       - name: Check Pull Request Status
         run: |
           PR_NUMBER="${{ inputs.pr_number }}"
+          echo The Title of your PR is ${{ github.event.pull_request.title }}
           PR_DATA=$(curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
@@ -43,22 +44,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
-  cleaning-namespace:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Delete AKS Namespace
-        if: steps.check-pr-status.outputs.merged == 'true'
-        run: |
-          AKS_NAMESPACE_NAME=$(echo ${{inputs.SourceCodeBranch}} | sed "s|/|-|g")
-          echo "Namespace: ${finalBranchName}"
+  # cleaning-namespace:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Delete AKS Namespace
+  #       if: steps.check-pr-status.outputs.merged == 'true'
+  #       run: |
+  #         AKS_NAMESPACE_NAME=$(echo ${{inputs.SourceCodeBranch}} | sed "s|/|-|g")
+  #         echo "Namespace: ${finalBranchName}"
           
-          # Log in to Azure if not already authenticated (skip if already done in main workflow).
-          # az login --service-principal -u <service-principal-id> -p <service-principal-secret> --tenant <azure-tenant-id>
+  #         # Log in to Azure if not already authenticated (skip if already done in main workflow).
+  #         # az login --service-principal -u <service-principal-id> -p <service-principal-secret> --tenant <azure-tenant-id>
           
-          # az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group rg-ais-payment-gateway --cluster-name sbpocaks --yes
+  #         # az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group rg-ais-payment-gateway --cluster-name sbpocaks --yes
       
-        # env:
-        #   AKS_NAMESPACE_NAME: ${{ steps.check-pr-status.outputs.namespace_name }}
+  #       # env:
+  #       #   AKS_NAMESPACE_NAME: ${{ steps.check-pr-status.outputs.namespace_name }}
         
 
     
