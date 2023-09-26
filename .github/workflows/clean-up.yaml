@@ -52,6 +52,7 @@ jobs:
         
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
 
   # cleaning-namespace:
   #   runs-on: ubuntu-latest
