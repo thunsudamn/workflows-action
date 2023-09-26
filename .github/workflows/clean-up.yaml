@@ -56,11 +56,12 @@ jobs:
         if: steps.check-pr-status.outputs.merged == 'true'
         run: |
           AKS_NAMESPACE_NAME=$(echo ${{inputs.SourceCodeBranch}} | sed "s|/|-|g")
+          echo "Namespace: ${finalBranchName}"
           
           # Log in to Azure if not already authenticated (skip if already done in main workflow).
           # az login --service-principal -u <service-principal-id> -p <service-principal-secret> --tenant <azure-tenant-id>
           
-          az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group rg-ais-payment-gateway --cluster-name sbpocaks --yes
+          # az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group rg-ais-payment-gateway --cluster-name sbpocaks --yes
       
         # env:
         #   AKS_NAMESPACE_NAME: ${{ steps.check-pr-status.outputs.namespace_name }}
