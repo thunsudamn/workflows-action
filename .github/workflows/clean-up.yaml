@@ -4,9 +4,19 @@ on:
   workflow_call:
     inputs:
       pr_number:
-        description: 'Pull Request Number'
-        type: string
         required: true
+        type: string
+        description: 'Pull Request Number'
+      SourceCodeBranch:
+        required: true
+        type: string
+    secrets:
+        CLIENT_ID:
+          required: true
+        CLIENT_SECRET:
+          required: true
+        TENANT_ID:
+          required: true
 
 jobs:
   check-pr-status:
@@ -39,24 +49,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
-  # You can add more steps or jobs for cleaning up the namespace if needed
-
-
-  # cleaning_up:
-  #   runs-on: ubuntu-latest
-  #   steps:
-
-  #     - name: Delete AKS Namespace
-  #       if: steps.check-pr-status.outputs.merged == 'true'
-  #       run: |
-  #         AKS_NAMESPACE_NAME="my-aks-namespace"  # Replace with your AKS namespace name or fetch it dynamically.
+  cleaning-namespace:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete AKS Namespace
+        if: steps.check-pr-status.outputs.merged == 'true'
+        run: |
+          AKS_NAMESPACE_NAME=$(echo ${{inputs.SourceCodeBranch}} | sed "s|/|-|g")
           
-  #         # Log in to Azure if not already authenticated (skip if already done in main workflow).
-  #         # az login --service-principal -u <service-principal-id> -p <service-principal-secret> --tenant <azure-tenant-id>
+          # Log in to Azure if not already authenticated (skip if already done in main workflow).
+          # az login --service-principal -u <service-principal-id> -p <service-principal-secret> --tenant <azure-tenant-id>
           
-  #         az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group <resource-group-name> --cluster-name <aks-cluster-name> --yes
-          
-  #       env:
-  #         AKS_NAMESPACE_NAME: ${{ steps.check-pr-status.outputs.namespace_name }}
+          az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group rg-ais-payment-gateway --cluster-name sbpocaks --yes
+      
+        # env:
+        #   AKS_NAMESPACE_NAME: ${{ steps.check-pr-status.outputs.namespace_name }}
+        
 
     
