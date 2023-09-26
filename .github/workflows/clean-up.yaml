@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Check Pull Request Status
-        id: check-pr-status
         run: |
           # Fetch the pull request number provided as input
           PR_NUMBER="${{ github.event.inputs.pr_number }}"
