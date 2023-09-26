@@ -29,7 +29,7 @@ jobs:
           
           # Check if the pull request is merged
           PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged')
-
+          echo "$PR_MERGED" 
           echo "::set-output name=merged::$PR_MERGED"
         
         env:
