@@ -5,7 +5,7 @@ on:
     inputs:
       pr_number:
         description: 'Pull Request Number'
-        type: number
+        type: string
         required: true
 
 jobs:
