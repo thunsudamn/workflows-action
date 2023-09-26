@@ -48,11 +48,10 @@ jobs:
           # echo "Pull Request URL: $PR_URL"
 
           # Access the pull request number
-          echo github.event.pull_request.number = ${{ github.event.pull_request.number }}
+          echo "::set-output name=pull_request_number::$(gh pr view --json number -q .number || echo "")"
         
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          PR_NUMBER: ${{ github.event.number }}
 
   # cleaning-namespace:
   #   runs-on: ubuntu-latest
