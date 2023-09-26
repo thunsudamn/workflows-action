@@ -1,20 +1,59 @@
-name: Pull Request Checks
-
-on:
-  workflow_call:
-  pull_request:
-    branches: main
+name: Cleaning up namespace
+on: 
+    workflow_dispatch:
 
 jobs:
-  check_if_branch_is_ahead_of_main:
+  check_pull_request:
     runs-on: ubuntu-latest
     steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Check if branch is ahead of main
+
+      - name: Check Pull Request Merge Status
+        id: check-pr-status
         run: |
-          if ! git merge-base --is-ancestor origin/main ${{ github.event.pull_request.head.sha }};
-          then echo "This branch is not up to date with main";
-          exit 1; fi
+          sudo apt-get update
+          sudo apt-get install jq
+          PR_NUMBER=$pr_number
+          REPO="thunsudamn/main-workflows"
+          
+          # Make a GitHub API request to fetch the pull request details
+          PR_DATA=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GIT_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/$REPO/pulls/$PR_NUMBER)
+
+            
+          result=$(echo "$PR_DATA" | jq -r tostring)
+          echo "$result"
+          
+          # Check if the pull request is merged
+          PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged')
+          echo "$PR_MERGED"        
+
+          if [ "$PR_MERGED" == "true" ]; then
+            echo "Pull Request is merged."
+          else
+            echo "Pull Request is not merged."
+          fi
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+  # cleaning_up:
+  #   runs-on: ubuntu-latest
+  #   steps:
+
+  #     - name: Delete AKS Namespace
+  #       if: steps.check-pr-status.outputs.merged == 'true'
+  #       run: |
+  #         AKS_NAMESPACE_NAME="my-aks-namespace"  # Replace with your AKS namespace name or fetch it dynamically.
+          
+  #         # Log in to Azure if not already authenticated (skip if already done in main workflow).
+  #         # az login --service-principal -u <service-principal-id> -p <service-principal-secret> --tenant <azure-tenant-id>
+          
+  #         az aks namespace delete --name $AKS_NAMESPACE_NAME --resource-group <resource-group-name> --cluster-name <aks-cluster-name> --yes
+          
+  #       env:
+  #         AKS_NAMESPACE_NAME: ${{ steps.check-pr-status.outputs.namespace_name }}
+
+    
