@@ -10,13 +10,13 @@ on:
       SourceCodeBranch:
         required: true
         type: string
-    secrets:
-        CLIENT_ID:
-          required: true
-        CLIENT_SECRET:
-          required: true
-        TENANT_ID:
-          required: true
+    # secrets:
+    #     CLIENT_ID:
+    #       required: true
+    #     CLIENT_SECRET:
+    #       required: true
+    #     TENANT_ID:
+    #       required: true
 
 jobs:
   check-pr-status:
