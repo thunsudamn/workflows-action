@@ -48,7 +48,7 @@ jobs:
           # echo "Pull Request URL: $PR_URL"
 
           # Access the pull request number
-          PR_NUMBER=$${{github.event.number}}
+          PR_NUMBER="${{github.event.number}}"
           echo "Pull Request Number: $PR_NUMBER"
         
         env:
