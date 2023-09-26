@@ -29,8 +29,12 @@ jobs:
           
           # Check if the pull request is merged
           PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged')
-          echo "$PR_MERGED" 
-          echo "::set-output name=merged::$PR_MERGED"
+          
+          if [ "$PR_MERGED" == "true" ]; then
+            echo "Pull Request is merged."
+          else
+            echo "Pull Request is not merged."
+          fi
         
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
