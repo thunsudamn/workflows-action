@@ -1,0 +1,16 @@
+name: set up az
+
+on:
+  workflow_call:
+    secrets:
+        AZURE_CREDENTIALS:
+          required: true
+
+jobs:
+  setup-up-azure-resources:
+    runs-on: runner-utility
+    steps:
+      - name: Azure login 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
