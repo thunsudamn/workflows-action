@@ -1,0 +1,56 @@
+name: docker-build-to-ACR
+
+on:
+  workflow_call:
+    inputs:
+      APP_NAME:
+        required: true
+        type: string
+      AZ_CONTAINER_REGISTRY:
+        required: true
+        type: string
+      AZ_CONTAINER_NAME:
+        required: true
+        type: string
+    secrets:
+      AZURE_CREDENTIALS: 
+        required: true
+    # Map the workflow outputs to job outputs
+    outputs:
+      PACKAGE_VERSION:
+        description: "The first output string"
+        value:  ${{ jobs.docker-build-push.outputs.output1 }}
+
+jobs:
+  docker-build-push:
+    runs-on: runner-utility
+    # Map the job outputs to step outputs
+    outputs:
+      output1: ${{ steps.json_properties.outputs.RELEASE_TAG }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: get properties
+        id: json_properties
+        run: |
+          echo "RELEASE_TAG=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+      - run: |
+          echo "Build tag==> ${{ steps.json_properties.outputs.RELEASE_TAG }}"
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - name: start docker login
+        run: |
+          az acr login -n ${{inputs.AZ_CONTAINER_NAME}}
+
+      ## Build dockerfile ##
+      - name: Build the Docker image
+        run: |
+          docker build . --file Dockerfile --tag ${{ inputs.APP_NAME }}:${{ steps.json_properties.outputs.RELEASE_TAG }}
+          docker tag ${{ inputs.APP_NAME }}:${{ steps.json_properties.outputs.RELEASE_TAG }} ${{inputs.AZ_CONTAINER_REGISTRY}}/${{ inputs.APP_NAME }}:${{ steps.json_properties.outputs.RELEASE_TAG }}
+          docker push ${{inputs.AZ_CONTAINER_REGISTRY}}/${{ inputs.APP_NAME }}:${{ steps.json_properties.outputs.RELEASE_TAG }}
+ 
