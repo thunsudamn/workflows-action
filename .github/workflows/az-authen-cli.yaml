@@ -1,0 +1,21 @@
+name: set up az
+
+on:
+  workflow_call:
+    secrets:
+        CLIENT_ID:
+          required: true
+        CLIENT_SECRET:
+          required: true
+        TENANT_ID:
+          required: true
+
+jobs:
+  setup-up-azure-resources:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure login
+        run: |
+          az login --service-principal -u ${{secrets.CLIENT_ID}} -p ${{secrets.CLIENT_SECRET}} --tenant ${{secrets.TENANT_ID}}
+
+          az resource list
