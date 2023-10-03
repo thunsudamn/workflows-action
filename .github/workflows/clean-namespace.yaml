@@ -1,0 +1,63 @@
+name: clean-up_namespace
+on: 
+  workflow_call:
+    inputs:
+        AKS_RESOURCE_GROUP:
+            required: true
+            type: string
+        AKS_NAME:
+            required: true
+            type: string
+    secrets:
+        AZURE_CREDENTIALS:
+          required: true
+             
+
+
+jobs:
+  clean-namespace:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+          
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} 
+
+      - name: Check if the pull request is merged
+        id: check
+        run: |
+          if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+            echo "Pull Request is merged."
+            echo "Base Branch: ${{ github.event.pull_request.base.ref }}"
+            branch=${{ github.event.pull_request.head.ref }}
+            echo "branch=$branch" >> $GITHUB_OUTPUT
+          else
+            echo "Pull Request is not merged."
+            exit 1
+          fi
+
+      - name: Clean up
+        id: echo
+        run: |  
+          echo "Pull Request branch - ${{ steps.check.outputs.branch }}"            
+          # Namespace
+          echo "Original Branch Name: ${{ steps.check.outputs.branch }}"
+          # reformat branch name
+          finalBranchName=$(echo ${{ steps.check.outputs.branch }} | sed "s|/|-|g")
+          NAMESPACE="${finalBranchName}"
+
+
+          az aks get-credentials --resource-group ${{inputs.AKS_RESOURCE_GROUP}} --name ${{inputs.AKS_NAME}}
+
+          # Check if the Kubernetes namespace exists 
+          kubectl get namespace $NAMESPACE > /dev/null 2>&1
+          if [ $? -eq 0 ]; then
+            echo "Namespace $NAMESPACE exists."
+            kubectl delete namespace $NAMESPACE
+            echo "Deleted namespace $NAMESPACE."
+          else
+            echo "Namespace $NAMESPACE does not exist."
+          fi    
