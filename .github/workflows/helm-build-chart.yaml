@@ -1,0 +1,78 @@
+name: Helm build chart
+
+on:
+  workflow_call:
+    inputs:
+      HELM_TEMPLATE_REPO:
+        required: true
+        type: string
+      HELM_TEMPLATE_BRANCH:
+        required: true
+        type: string 
+      AZURE_STORAGE_ACC_NAME:
+        required: true
+        type: string
+      AZURE_CONTAINER_NAME:
+        required: true
+        type: string 
+      APP_NAME:
+        required: true
+        type: string
+      APP_VERSION:
+        required: true
+        type: string
+    secrets:
+      AZURE_CREDENTIALS: 
+        required: true
+
+jobs:
+  run-helm:
+    runs-on: runner-utility
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: ${{inputs.HELM_TEMPLATE_REPO}} #brightza008/poc-helmchart@minikube
+          ref: ${{inputs.HELM_TEMPLATE_BRANCH}}
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: helm build chart
+        run: | 
+          #### Preparation Helm Template ####
+          mkdir azure-helm-repository
+          mv buildchart ./${{inputs.APP_NAME}}
+          ls -R
+
+          #### Add helm metadata####
+          yq -i '.image.tag="${{inputs.APP_VERSION}}"'    ./${{inputs.APP_NAME}}/values.yaml
+          yq -i '.applicationName="${{inputs.APP_NAME}}"' ./${{inputs.APP_NAME}}/values.yaml
+          yq ./${{inputs.APP_NAME}}/values.yaml -o json
+          yq -i '.name="${{inputs.APP_NAME}}"'            ./${{inputs.APP_NAME}}/Chart.yaml
+          yq -i '.version="${{inputs.APP_VERSION}}"'      ./${{inputs.APP_NAME}}/Chart.yaml
+          yq -i '.appVersion="${{inputs.APP_VERSION}}"'   ./${{inputs.APP_NAME}}/Chart.yaml
+          yq ./${{inputs.APP_NAME}}/Chart.yaml -o json
+
+          helm dependency update ${{inputs.APP_NAME}}
+          helm package \
+            --app-version ${{inputs.APP_VERSION}} \
+            --version ${{inputs.APP_VERSION}} \
+            ./${{inputs.APP_NAME}}
+
+          cp ./${{inputs.APP_NAME}}-${{inputs.APP_VERSION}}.tgz ./azure-helm-repository/
+          helm repo index ./azure-helm-repository ## add index catalog
+
+          #### Start Upload ####
+          az storage blob upload-batch --overwrite --account-name ${{inputs.AZURE_STORAGE_ACC_NAME}} \
+          --destination ${{inputs.AZURE_CONTAINER_NAME}} \
+          --source ./azure-helm-repository
+
+          # az storage blob upload \
+          # --file "./${{inputs.APP_NAME}}-${{inputs.APP_VERSION}}.tgz" \
+          # --container-name ${{inputs.AZURE_CONTAINER_NAME}} \
+          # --account-name ${{inputs.AZURE_STORAGE_ACC_NAME}} \
+          # --auth-mode login
