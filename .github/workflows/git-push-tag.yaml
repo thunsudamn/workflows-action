@@ -1,0 +1,36 @@
+name: Pushing Git Tag
+
+on:
+  workflow_call:
+    inputs:
+      APP_VERSION:
+        required: true
+        type: string
+
+jobs:
+  git-tag:
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+            repository: ${{inputs.HELM_VALUES_REPO}}
+            ref: ${{inputs.HELM_VALUES_BRANCH}}
+            
+      - name: Push Git Tag
+        run: |
+          VERSION=${{inputs.APP_VERSION}}
+          TAG="v$VERSION"
+          echo "tag: $TAG"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          if git ls-remote --exit-code --tags origin $TAG; then
+            echo "Tag $TAG already exists in remote repository."
+          else
+            echo "Tag $TAG does not exist in remote repository. Pushing the tag..."
+            git config user.name "GitHub Actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git tag -a $TAG -m "Release $TAG"
+            git push origin $TAG
+          fi
+        env:
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
