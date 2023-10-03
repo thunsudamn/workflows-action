@@ -1,0 +1,60 @@
+name: POC_package_versioning
+on: 
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      PACKAGE_VERSION:
+        description: "set output"
+        value: ${{ jobs.package-versioning.outputs.packageversion_output }}
+
+jobs:
+  package-versioning:
+    outputs:
+      packageversion_output: ${{ steps.json_properties.outputs.PackageVersion }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Install Groovy
+        run: |
+          sudo apt-get update
+          sudo apt-get install groovy -y
+
+      - name: Get current date
+        id: date
+        run: |
+            echo "today=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Example Dev/Sit env.
+        id: json_properties
+        run: |
+          groovy -e '''
+            import hudson.model.*
+              def json = new File("package.json").text
+              def parsedJson = new groovy.json.JsonSlurper().parseText(json)
+              def packageVersionInJson =  parsedJson.version
+              println "Package Version (package.json): ${packageVersionInJson}"
+
+                // For DEV ENV //
+                def versionSplit = packageVersionInJson.split("\\.")
+                int lastDigitVersion = "${versionSplit[versionSplit.size() - 1]}".toInteger()
+                String perfixVersion = "${versionSplit[0]}.${versionSplit[1]}"
+                int nextVersion = lastDigitVersion + 1
+                String newVersion = "${perfixVersion}.${nextVersion}"
+                PackageVersion = "${newVersion}".trim()
+                println "DEV Version: ${PackageVersion}"
+                
+                
+                // For SIT ENV //
+                println "${{steps.date.outputs.today}}"
+                PackageVersion = "${packageVersionInJson}-${{steps.date.outputs.today}}-${{github.run_number}}".trim()
+                println "SIT Version: ${PackageVersion}"
+
+                def env = System.getenv("${PackageVersion}")
+                //def version = env["${PackageVersion}"]
+                println "${env}"
+          '''
+          echo "Print out of groovy: ${version}" 
+
+          # echo "PackageVersion=${PackageVersion}" >> $GITHUB_OUTPUT
